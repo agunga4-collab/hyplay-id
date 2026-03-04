@@ -4,6 +4,8 @@ import React, { useState, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GoogleGenAI, Modality } from "@google/genai";
 
+const SHEET_API = 'https://script.google.com/macros/s/AKfycbwUnD7ek2k6iGxqKM6Jw0fXViPAK5MP9fNOY4oP4gSEvnVSEJd267SqU8OsSiVIGhGX/exec';
+
 // --- TYPE DEFINITIONS ---
 type Tab = 'home' | 'profile' | 'schedule' | 'ideas' | 'evaluation' | 'konsultasi' | 'referensi' | 'members';
 
@@ -232,7 +234,7 @@ const RegistrationScreen = ({ onRegister }: { onRegister: (user: UserProfile) =>
         } else {
             newUser = { id: Date.now(), role: 'teacher', name, age: parseInt(age), location, avatar: avatars[Math.floor(Math.random() * avatars.length)], bio: 'Guru berdedikasi untuk pendidikan inklusif 🏫', followers: 0, following: 0, posts: [], background: 'Pendidikan Inklusi', experience: 'Baru Bergabung' };
         }
-        onRegister(newUser);
+        fetch(SHEET_API, { method: 'POST', body: JSON.stringify({ action: 'register', user: { name, age: parseInt(age), role, location } }), mode: 'no-cors' }).catch(() => {}); onRegister(newUser);
     };
 
     return (
@@ -451,7 +453,7 @@ const EvaluationScreen = () => {
                         boxShadow: isComplete ? '0 4px 15px rgba(240, 58, 141, 0.3)' : 'none'
                     }} 
                     disabled={!isComplete}
-                    onClick={() => setSubmitted(true)}
+                    onClick={() => fetch(SHEET_API, { method: 'POST', body: JSON.stringify({ action: 'saveEvaluation', evaluation: { userId: 0, childName, childAge, sessionCount, answers, narrative: '' } }), mode: 'no-cors' }).catch(() => {}); setSubmitted(true)}
                 >
                     Simpan Evaluasi Pertemuan {sessionCount}
                 </button>
@@ -745,7 +747,7 @@ const App = () => {
         if (isPlayingSound) return;
         setIsPlayingSound(true);
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
             const response = await ai.models.generateContent({
                 model: "gemini-2.5-flash-preview-tts",
                 contents: [{ parts: [{ text: 'Hai Ayah Bunda! Selamat datang di hyplay.id, rumah bagi keceriaan dan petualangan playdate yang inklusif untuk setiap anak. Mari kita ciptakan momen bermain yang tak terlupakan bersama-sama!' }] }],

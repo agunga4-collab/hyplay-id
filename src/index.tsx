@@ -453,7 +453,7 @@ const EvaluationScreen = () => {
                         boxShadow: isComplete ? '0 4px 15px rgba(240, 58, 141, 0.3)' : 'none'
                     }} 
                     disabled={!isComplete}
-                    onClick={() => fetch(SHEET_API, { method: 'POST', body: JSON.stringify({ action: 'saveEvaluation', evaluation: { userId: 0, childName, childAge, sessionCount, answers, narrative: '' } }), mode: 'no-cors' }).catch(() => {}); setSubmitted(true)}
+                    onClick={() => { fetch(SHEET_API, { method: 'POST', body: JSON.stringify({ action: 'saveEvaluation', evaluation: { userId: 0, childName, childAge, sessionCount, answers, narrative: '' } }), mode: 'no-cors' }).catch(() => {}); setSubmitted(true); }}
                 >
                     Simpan Evaluasi Pertemuan {sessionCount}
                 </button>

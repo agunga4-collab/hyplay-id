@@ -31,12 +31,15 @@ interface BaseProfile {
 
 interface ParentProfileData extends BaseProfile {
     role: 'parent';
+        children: {name: string; age: number; specialNeeds: string}[];
 }
 
 interface TeacherProfileData extends BaseProfile {
     role: 'teacher';
     background: string;
     experience: string;
+        isOnline: boolean;
+    specialization: string;
 }
 
 type UserProfile = ParentProfileData | TeacherProfileData;
@@ -179,6 +182,14 @@ for (let i = 1; i <= 24; i++) {
 }
 const PlayLocationsData = rawLocations;
 
+// Format tanggal Indonesia
+const formatTanggalID = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    return `${hari[d.getDay()]}, ${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+};
+
 // FIX 5: Data Jadwal
 const mockSchedule: ScheduleItem[] = [
     { id: 1, title: 'Playdate Sensori Bersama', date: '2026-03-08', time: '09:00', location: 'Taman Bermain Inklusi Jakarta', type: 'playdate' },
@@ -190,14 +201,15 @@ const mockSchedule: ScheduleItem[] = [
 ];
 
 const initialTeachers: TeacherProfileData[] = [
-    { id: 101, role: 'teacher', name: 'Ibu Sarah, S.Pd', age: 32, avatar: avatars[0], bio: 'Ahli intervensi dini dan stimulasi sensori.', location: 'Jakarta', followers: 120, following: 80, posts: [], background: 'S1 Pendidikan Luar Biasa', experience: '8 Tahun' },
-    { id: 102, role: 'teacher', name: 'Bapak Ahmad, M.Psi', age: 35, avatar: avatars[1], bio: 'Psikolog perkembangan anak khusus inklusi.', location: 'Bandung', followers: 250, following: 150, posts: [], background: 'S2 Psikologi Anak', experience: '10 Tahun' }
+    { id: 101, role: 'teacher', name: 'Ibu Sarah, S.Pd', age: 32, avatar: avatars[0], bio: 'Ahli intervensi dini dan stimulasi sensori.', location: 'Jakarta', followers: 120, following: 80, posts: [], background: 'S1 Pendidikan Luar Biasa', experience: '8 Tahun', isOnline: true, specialization: 'Intervensi Dini & Sensori' },
+    { id: 102, role: 'teacher', name: 'Bapak Ahmad, M.Psi', age: 35, avatar: avatars[1], bio: 'Psikolog perkembangan anak khusus inklusi.', location: 'Bandung', followers: 250, following: 150, posts: [], background: 'S2 Psikologi Anak', experience: '10 Tahun', isOnline: false, specialization: 'Psikologi Perkembangan Anak' }
 ];
 
 const initialMembers: ParentProfileData[] = [
-    { id: 201, role: 'parent', name: 'Mama Arka', age: 28, avatar: avatars[2], bio: 'Suka berbagi ide bermain sensori di rumah.', location: 'Jakarta Selatan', followers: 45, following: 30, posts: [] },
-    { id: 202, role: 'parent', name: 'Papa Kenzie', age: 34, avatar: avatars[3], bio: 'Ayah yang aktif mendampingi ananda bermain.', location: 'Bekasi', followers: 20, following: 15, posts: [] },
-    { id: 203, role: 'parent', name: 'Bunda Naura', age: 30, avatar: avatars[4], bio: 'Mari berteman dan berbagi pengalaman inklusi.', location: 'Tangerang', followers: 88, following: 120, posts: [] }
+    { id: 201, role: 'parent', name: 'Mama Arka', age: 28, avatar: avatars[2], bio: 'Suka berbagi ide bermain sensori di rumah.', location: 'Jakarta Selatan', followers: 45, following: 30, posts: [], children: [{name: 'Arka', age: 4, specialNeeds: 'Sensori'}] },
+
+    { id: 202, role: 'parent', name: 'Papa Kenzie', age: 34, avatar: avatars[3], bio: 'Ayah yang aktif mendampingi ananda bermain.', location: 'Bekasi', followers: 20, following: 15, posts: [], children: [{name: 'Kenzie', age: 5, specialNeeds: 'ADHD'}] },
+    { id: 203, role: 'parent', name: 'Bunda Naura', age: 30, avatar: avatars[4], bio: 'Mari berteman dan berbagi pengalaman inklusi.', location: 'Tangerang', followers: 88, following: 120, posts: [], children: [{name: 'Naura', age: 3, specialNeeds: 'Speech Delay'}] }
 ];
 
 // --- ICONS ---
@@ -242,9 +254,9 @@ const RegistrationScreen = ({ onRegister }: { onRegister: (user: UserProfile) =>
         setIsLoading(true);
         let newUser: UserProfile;
         if (role === 'parent') {
-            newUser = { id: Date.now(), role: 'parent', name, age: parseInt(age), location, avatar: avatars[Math.floor(Math.random() * avatars.length)], bio: 'Orang tua yang aktif mendampingi ananda', followers: 0, following: 0, posts: [] };
+            newUser = { id: Date.now(), role: 'parent', name, age: parseInt(age), location, avatar: avatars[Math.floor(Math.random() * avatars.length)], bio: 'Orang tua yang aktif mendampingi ananda', followers: 0, following: 0, posts: [], children: [] };
         } else {
-            newUser = { id: Date.now(), role: 'teacher', name, age: parseInt(age), location, avatar: avatars[Math.floor(Math.random() * avatars.length)], bio: 'Guru berdedikasi untuk pendidikan inklusif', followers: 0, following: 0, posts: [], background: 'Pendidikan Inklusi', experience: 'Baru Bergabung' };
+            newUser = { id: Date.now(), role: 'teacher', name, age: parseInt(age), location, avatar: avatars[Math.floor(Math.random() * avatars.length)], bio: 'Guru berdedikasi untuk pendidikan inklusif', followers: 0, following: 0, posts: [], background: 'Pendidikan Inklusi', experience: 'Baru Bergabung', isOnline: false, specialization: 'Umum' };
         }
         fetch(SHEET_API, { method: 'POST', body: JSON.stringify({ action: 'register', user: { name, age: parseInt(age), role, location } }), mode: 'no-cors' }).catch(() => {});
         setTimeout(() => { setIsLoading(false); onRegister(newUser); }, 800);
@@ -342,11 +354,11 @@ const EvaluationScreen = () => {
                 <label className="form-label">Pilih Tahap Pertemuan:</label>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>{[1,3,7].map(num => (<button key={num} onClick={() => { setSessionCount(num as 1|3|7); setAnswers({}); }} className="profile-btn" style={{ flex:1, background: sessionCount===num?'var(--brand-pink)':'#f0f2f5', color: sessionCount===num?'white':'#666' }}>{num} Kali</button>))}</div>
             </div>
-            <p style={{ fontSize: '0.8rem', color: '#888', margin: '0.5rem 0' }}>Skala 1-5 untuk pertemuan ke-{sessionCount}</p>
-            {evaluationIndicators.map(q => (
+            <p style={{ fontSize: '0.8rem', color: '#888', margin: '0.5rem 0' }}>Progress: {Object.keys(answers).length}/{evaluationIndicators.length}</p><div style={{background:'#e5e7eb',borderRadius:'10px',height:'8px',marginBottom:'0.5rem'}}><div style={{background:'var(--brand-pink)',borderRadius:'10px',height:'8px',width:`${(Object.keys(answers).length/evaluationIndicators.length)*100}%`,transition:'width 0.3s'}}></div></div><p style={{fontSize:'0.85rem',color:'#666'}}>Skala 1-5 untuk pertemuan ke-{sessionCount}</p>
+            {evaluationIndicators.map((q, qIndex) => (
                 <div key={q.id} className="card" style={{ padding: '0.8rem', marginBottom: '0.5rem' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--brand-pink)', fontWeight: '700' }}>{q.category}</div>
-                    <p style={{ fontSize: '0.85rem', margin: '0.3rem 0 0.5rem', color: '#333' }}>{q.text}</p>
+                    <p style={{ fontSize: '0.85rem', margin: '0.3rem 0 0.5rem', color: '#333' }}>{qIndex + 1}. {q.text}</p>
                     <div style={{ display: 'flex', gap: '0.3rem' }}>{[1,2,3,4,5].map(val => (<button key={val} onClick={() => handleSelect(q.id, val)} style={{ flex:1, padding:'0.5rem 0', borderRadius:'10px', border:'1px solid #eee', background: answers[q.id]===val?'var(--navy-blue)':'white', color: answers[q.id]===val?'white':'#666', fontWeight:'800', fontSize:'0.8rem', cursor:'pointer' }}>{val}</button>))}</div>
                 </div>
             ))}
@@ -431,7 +443,7 @@ const MembersScreen = ({ onChat }: { onChat: (m: BaseProfile) => void }) => {
                     <img src={m.avatar} alt={m.name} style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#f0f2f5' }} />
                     <div style={{ flex: 1 }}>
                         <h3 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--navy-blue)' }}>{m.name}</h3>
-                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}>{m.location}</p>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}>{m.location}</p><p style={{fontSize:'0.75rem',color:'#888',margin:'0.2rem 0'}}>{m.bio}</p>{m.children && m.children.length > 0 && <p style={{fontSize:'0.7rem',color:'var(--brand-pink)',margin:'0.2rem 0'}}>Anak: {m.children.map(c => `${c.name} (${c.age}th, ${c.specialNeeds})`).join(', ')}</p>}
                     </div>
                     <button onClick={() => toggleFriend(m.id)} className="profile-btn outline" style={{ width: 'auto', padding: '0.4rem 0.8rem', background: friends.includes(m.id) ? 'var(--brand-pink)' : '#f0f2f5', color: friends.includes(m.id) ? 'white' : 'var(--navy-blue)' }}>{friends.includes(m.id) ? 'Friend' : '+ Friend'}</button>
                     <button onClick={() => onChat(m)} className="profile-btn outline" style={{ width: 'auto', padding: '0.4rem 0.8rem' }}>Chat</button>
@@ -519,7 +531,7 @@ const ScheduleScreen = () => {
                         <h3 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--navy-blue)' }}>{item.title}</h3>
                         <span style={{ background: typeColor[item.type], color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>{typeLabel[item.type]}</span>
                     </div>
-                    <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: '#888' }}>{item.date} | {item.time} WIB</p>
+                    <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: '#888' }}>{formatTanggalID(item.date)} | {item.time} WIB</p>
                     <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#666' }}>{item.location}</p>
                 </div>
             ))}
@@ -664,7 +676,7 @@ const App = () => {
                     <h3 style={{ color: 'var(--navy-blue)', marginBottom: '0.5rem' }}>Jadwal Terdekat</h3>
                     {mockSchedule.slice(0, 2).map(item => (
                         <div key={item.id} className="card" style={{ padding: '0.8rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div><p style={{ margin: 0, fontWeight: '700', fontSize: '0.85rem', color: 'var(--navy-blue)' }}>{item.title}</p><p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>{item.date} | {item.time}</p></div>
+                            <div><p style={{ margin: 0, fontWeight: '700', fontSize: '0.85rem', color: 'var(--navy-blue)' }}>{item.title}</p><p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>{formatTanggalID(item.date)} | {item.time}</p></div>
                             <span style={{ background: 'var(--brand-pink)', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem' }}>{item.type}</span>
                         </div>
                     ))}
@@ -684,7 +696,7 @@ const App = () => {
                             <div style={{ flex: 1 }}>
                                 <h3 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--navy-blue)' }}>{t.name}</h3>
                                 <span style={{ fontSize: '0.75rem', color: t.id > 200 ? 'var(--brand-pink)' : '#666' }}>{t.id > 200 ? 'Expert' : 'Registered Guru'}</span>
-                                <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#888' }}>{t.background} | {t.experience}</p>
+                                <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#888' }}>{t.specialization} | {t.experience} {t.isOnline && <span style={{color:'#22c55e',fontSize:'0.7rem'}}> Online</span>}</p>
                             </div>
                             <button onClick={() => setActiveChat(t)} className="profile-btn outline" style={{ width: 'auto', padding: '0.4rem 0.8rem' }}>Chat</button>
                         </div>

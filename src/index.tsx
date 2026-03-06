@@ -723,8 +723,8 @@ const App = () => {
             <header className="app-header">
                 <HyplayLogo />
             </header>
-            <main className="app-main">{renderTab()}</main>
-            <nav className="app-nav">
+            <main className="content-area">{renderTab()}</main>
+            <nav className="tab-bar">
                 {navItems.map(item => (
                     <button key={item.tab} onClick={() => { setActiveTab(item.tab); setActiveChat(null); }} className={`nav-item ${activeTab === item.tab && !activeChat ? 'active' : ''}`}>
                         {item.icon}
